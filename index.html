@@ -411,8 +411,46 @@
         <div class="result-section" id="pfuSection" style="display: none">
           <h3>5️⃣ Flat tax crypto (PFU)</h3>
           <div class="result-line">
-            <span class="result-label">PFU 30% sur gains crypto</span>
+            <span class="result-label">Montant brut crypto</span>
+            <span class="result-value" id="pfuMontantBrut">0 €</span>
+          </div>
+          <div class="result-line">
+            <span class="result-label">Impôt sur le revenu (12,8%)</span>
+            <span class="result-value" id="pfuIR">0 €</span>
+          </div>
+          <div class="result-line">
+            <span class="result-label">Prélèvements sociaux (17,2%)</span>
+            <span class="result-value" id="pfuPS">0 €</span>
+          </div>
+          <div class="result-line" style="font-weight: 600; color: #667eea">
+            <span class="result-label">Total PFU 30%</span>
             <span class="result-value" id="pfuAmount">0 €</span>
+          </div>
+          <div class="bonus-info" style="margin-top: 15px">
+            <strong>ℹ️ Régime appliqué :</strong> PFU (Prélèvement Forfaitaire Unique) = 12,8% IR + 17,2% prélèvements sociaux → total 30%
+          </div>
+        </div>
+
+        <div class="result-section" id="baremeSection" style="display: none">
+          <h3>5️⃣ Taxation crypto au barème progressif</h3>
+          <div class="result-line">
+            <span class="result-label">Montant brut crypto</span>
+            <span class="result-value" id="baremeMontantBrut">0 €</span>
+          </div>
+          <div class="result-line">
+            <span class="result-label">Impôt sur le revenu (selon TMI)</span>
+            <span class="result-value" id="baremeIR">0 €</span>
+          </div>
+          <div class="result-line">
+            <span class="result-label">Prélèvements sociaux (17,2%)</span>
+            <span class="result-value" id="baremePS">0 €</span>
+          </div>
+          <div class="result-line" style="font-weight: 600; color: #667eea">
+            <span class="result-label">Total impôt crypto</span>
+            <span class="result-value" id="baremeTotalCrypto">0 €</span>
+          </div>
+          <div class="bonus-info" style="margin-top: 15px">
+            <strong>ℹ️ Régime appliqué :</strong> Barème progressif IR (selon tranche marginale) + 17,2% de prélèvements sociaux sur la plus-value
           </div>
         </div>
 
@@ -583,19 +621,59 @@
         const impotBrut = impotUnePart * parts
         document.getElementById('impotBrut').textContent = formatEuro(impotBrut)
 
-        // PFU sur crypto
-        let pfuAmount = 0
-        if (pfuCrypto && gainsCrypto > 0) {
-          pfuAmount = gainsCrypto * 0.3
-          document.getElementById('pfuSection').style.display = 'block'
-          document.getElementById('pfuAmount').textContent =
-            formatEuro(pfuAmount)
+        // Calcul des impôts crypto
+        let impotCrypto = 0
+
+        if (gainsCrypto > 0) {
+          if (pfuCrypto) {
+            // Mode PFU : 12,8% IR + 17,2% prélèvements sociaux = 30%
+            const pfuIR = gainsCrypto * 0.128
+            const pfuPS = gainsCrypto * 0.172
+            const pfuTotal = pfuIR + pfuPS
+
+            document.getElementById('pfuMontantBrut').textContent = formatEuro(gainsCrypto)
+            document.getElementById('pfuIR').textContent = formatEuro(pfuIR)
+            document.getElementById('pfuPS').textContent = formatEuro(pfuPS)
+            document.getElementById('pfuAmount').textContent = formatEuro(pfuTotal)
+
+            document.getElementById('pfuSection').style.display = 'block'
+            document.getElementById('baremeSection').style.display = 'none'
+
+            impotCrypto = pfuTotal
+          } else {
+            // Mode barème : crypto inclus dans le revenu imposable
+            // Il faut calculer l'impôt AVEC crypto, puis soustraire l'impôt SANS crypto
+            // pour obtenir l'impôt dû sur la crypto selon le barème
+
+            const quotientSansCrypto = (totalImposable - gainsCrypto) / parts
+            const { impot: impotSansCrypto } = calculerImpotProgressif(quotientSansCrypto)
+            const impotBrutSansCrypto = impotSansCrypto * parts
+
+            // L'impôt sur le revenu de la crypto est la différence
+            const irCrypto = impotBrut - impotBrutSansCrypto
+
+            // Prélèvements sociaux : toujours 17,2% du montant brut
+            const psCrypto = gainsCrypto * 0.172
+
+            const totalCrypto = irCrypto + psCrypto
+
+            document.getElementById('baremeMontantBrut').textContent = formatEuro(gainsCrypto)
+            document.getElementById('baremeIR').textContent = formatEuro(irCrypto)
+            document.getElementById('baremePS').textContent = formatEuro(psCrypto)
+            document.getElementById('baremeTotalCrypto').textContent = formatEuro(totalCrypto)
+
+            document.getElementById('pfuSection').style.display = 'none'
+            document.getElementById('baremeSection').style.display = 'block'
+
+            impotCrypto = totalCrypto
+          }
         } else {
           document.getElementById('pfuSection').style.display = 'none'
+          document.getElementById('baremeSection').style.display = 'none'
         }
 
         // Total final
-        const totalImpot = impotBrut + pfuAmount
+        const totalImpot = impotBrut + impotCrypto
         document.getElementById('totalImpot').textContent =
           formatEuro(totalImpot)
 
@@ -610,8 +688,12 @@
           revenuTotal
         )}, votre impôt estimé est de ${formatEuro(totalImpot)}`
 
-        if (pfuCrypto && gainsCrypto > 0) {
-          synthesisText += ` (dont ${formatEuro(pfuAmount)} de flat tax crypto)`
+        if (gainsCrypto > 0) {
+          if (pfuCrypto) {
+            synthesisText += ` (dont ${formatEuro(impotCrypto)} d'impôt crypto au PFU : 12,8% IR + 17,2% prélèvements sociaux = 30%)`
+          } else {
+            synthesisText += ` (dont ${formatEuro(impotCrypto)} d'impôt crypto au barème IR + 17,2% de prélèvements sociaux)`
+          }
         }
 
         synthesisText += `. Votre taux d'imposition effectif est de ${tauxEffectif}%.`
