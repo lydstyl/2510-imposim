@@ -432,25 +432,17 @@
         </div>
 
         <div class="result-section" id="baremeSection" style="display: none">
-          <h3>5️⃣ Taxation crypto au barème progressif</h3>
+          <h3>5️⃣ Prélèvements sociaux sur crypto</h3>
           <div class="result-line">
             <span class="result-label">Montant brut crypto</span>
             <span class="result-value" id="baremeMontantBrut">0 €</span>
           </div>
           <div class="result-line">
-            <span class="result-label">Impôt sur le revenu (selon TMI)</span>
-            <span class="result-value" id="baremeIR">0 €</span>
-          </div>
-          <div class="result-line">
             <span class="result-label">Prélèvements sociaux (17,2%)</span>
             <span class="result-value" id="baremePS">0 €</span>
           </div>
-          <div class="result-line" style="font-weight: 600; color: #667eea">
-            <span class="result-label">Total impôt crypto</span>
-            <span class="result-value" id="baremeTotalCrypto">0 €</span>
-          </div>
           <div class="bonus-info" style="margin-top: 15px">
-            <strong>ℹ️ Régime appliqué :</strong> Barème progressif IR (selon tranche marginale) + 17,2% de prélèvements sociaux sur la plus-value
+            <strong>ℹ️ Régime appliqué :</strong> Les gains crypto sont imposés au barème progressif (déjà inclus au point 4️⃣) + 17,2% de prélèvements sociaux sur la plus-value
           </div>
         </div>
 
@@ -642,30 +634,21 @@
             impotCrypto = pfuTotal
           } else {
             // Mode barème : crypto inclus dans le revenu imposable
-            // Il faut calculer l'impôt AVEC crypto, puis soustraire l'impôt SANS crypto
-            // pour obtenir l'impôt dû sur la crypto selon le barème
-
-            const quotientSansCrypto = (totalImposable - gainsCrypto) / parts
-            const { impot: impotSansCrypto } = calculerImpotProgressif(quotientSansCrypto)
-            const impotBrutSansCrypto = impotSansCrypto * parts
-
-            // L'impôt sur le revenu de la crypto est la différence
-            const irCrypto = impotBrut - impotBrutSansCrypto
+            // L'impôt sur le revenu est déjà calculé dans le barème progressif (point 4)
+            // On ajoute seulement les prélèvements sociaux de 17,2%
 
             // Prélèvements sociaux : toujours 17,2% du montant brut
             const psCrypto = gainsCrypto * 0.172
 
-            const totalCrypto = irCrypto + psCrypto
-
             document.getElementById('baremeMontantBrut').textContent = formatEuro(gainsCrypto)
-            document.getElementById('baremeIR').textContent = formatEuro(irCrypto)
             document.getElementById('baremePS').textContent = formatEuro(psCrypto)
-            document.getElementById('baremeTotalCrypto').textContent = formatEuro(totalCrypto)
 
             document.getElementById('pfuSection').style.display = 'none'
             document.getElementById('baremeSection').style.display = 'block'
 
-            impotCrypto = totalCrypto
+            // L'impôt crypto = seulement les prélèvements sociaux
+            // (l'IR est déjà dans impotBrut car crypto est dans totalImposable)
+            impotCrypto = psCrypto
           }
         } else {
           document.getElementById('pfuSection').style.display = 'none'
