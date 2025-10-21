@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imposim - Simulateur d'Impôt sur le Revenu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #results {
+            display: none;
+        }
+
+        #results.visible {
+            display: block;
+        }
+
+        .result-section {
+            margin-bottom: 25px;
+        }
+
+        .result-section h3 {
+            color: #667eea;
+            margin-bottom: 12px;
+            font-size: 1.2rem;
+        }
+
+        .result-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .result-line:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            color: #666;
+        }
+
+        .result-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .total-result {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .total-result h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+
+        .total-result .amount {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .synthesis {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .synthesis p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .bonus-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .bonus-info strong {
+            color: #1976d2;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2rem;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .total-result .amount {
+                font-size: 2rem;
+            }
+        }
+
+        .info-badge {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💼 Imposim</h1>
+            <p>Simulateur d'impôt sur le revenu pour freelance-investisseur</p>
+        </header>
+
+        <div class="card">
+            <h2>📊 Vos revenus annuels</h2>
+
+            <div class="form-group">
+                <label for="revenuBNC">
+                    Revenu micro-BNC (freelance)
+                    <span class="info-badge">Abattement 34%</span>
+                </label>
+                <input type="number" id="revenuBNC" value="10000" min="0" step="100">
+            </div>
+
+            <div class="form-group">
+                <label for="revenuBIC">
+                    Revenu micro-BIC (location meublée)
+                    <span class="info-badge">Abattement 50%</span>
+                </label>
+                <input type="number" id="revenuBIC" value="10000" min="0" step="100">
+            </div>
+
+            <div class="form-group">
+                <label for="revenuFoncier">
+                    Revenu micro-foncier (location nue)
+                    <span class="info-badge">Abattement 30%</span>
+                </label>
+                <input type="number" id="revenuFoncier" value="10000" min="0" step="100">
+            </div>
+
+            <div class="form-group">
+                <label for="gainsCrypto">Plus-values crypto</label>
+                <input type="number" id="gainsCrypto" value="10000" min="0" step="100">
+            </div>
+
+            <div class="form-group">
+                <label for="parts">Nombre de parts fiscales</label>
+                <input type="number" id="parts" value="2" min="1" max="10" step="0.5">
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="pfuCrypto" checked>
+                <label for="pfuCrypto">Appliquer la flat tax (PFU 30%) sur les gains crypto</label>
+            </div>
+
+            <button onclick="calculerImpot()">🧮 Calculer mon impôt</button>
+        </div>
+
+        <div id="results" class="card">
+            <h2>📋 Résultats détaillés</h2>
+
+            <div class="result-section">
+                <h3>1️⃣ Revenus bruts</h3>
+                <div class="result-line">
+                    <span class="result-label">Micro-BNC</span>
+                    <span class="result-value" id="brutBNC">0 €</span>
+                </div>
+                <div class="result-line">
+                    <span class="result-label">Micro-BIC</span>
+                    <span class="result-value" id="brutBIC">0 €</span>
+                </div>
+                <div class="result-line">
+                    <span class="result-label">Micro-foncier</span>
+                    <span class="result-value" id="brutFoncier">0 €</span>
+                </div>
+                <div class="result-line">
+                    <span class="result-label">Plus-values crypto</span>
+                    <span class="result-value" id="brutCrypto">0 €</span>
+                </div>
+            </div>
+
+            <div class="result-section">
+                <h3>2️⃣ Abattements appliqués</h3>
+                <div class="result-line">
+                    <span class="result-label">BNC (34%)</span>
+                    <span class="result-value" id="abattementBNC">0 €</span>
+                </div>
+                <div class="result-line">
+                    <span class="result-label">BIC (50%)</span>
+                    <span class="result-value" id="abattementBIC">0 €</span>
+                </div>
+                <div class="result-line">
+                    <span class="result-label">Foncier (30%)</span>
+                    <span class="result-value" id="abattementFoncier">0 €</span>
+                </div>
+            </div>
+
+            <div class="result-section">
+                <h3>3️⃣ Revenus imposables</h3>
+                <div class="result-line">
+                    <span class="result-label">BNC imposable</span>
+                    <span class="result-value" id="imposableBNC">0 €</span>
+                </div>
+                <div class="result-line">
+                    <span class="result-label">BIC imposable</span>
+                    <span class="result-value" id="imposableBIC">0 €</span>
+                </div>
+                <div class="result-line">
+                    <span class="result-label">Foncier imposable</span>
+                    <span class="result-value" id="imposableFoncier">0 €</span>
+                </div>
+                <div class="result-line">
+                    <span class="result-label">Crypto imposable (au barème)</span>
+                    <span class="result-value" id="imposableCrypto">0 €</span>
+                </div>
+                <div class="result-line" style="font-weight: 600; color: #667eea;">
+                    <span class="result-label">Total imposable</span>
+                    <span class="result-value" id="totalImposable">0 €</span>
+                </div>
+            </div>
+
+            <div class="result-section">
+                <h3>4️⃣ Application du barème progressif</h3>
+                <div class="result-line">
+                    <span class="result-label">Quotient familial (revenu / parts)</span>
+                    <span class="result-value" id="quotient">0 €</span>
+                </div>
+                <div id="tranchesDetail"></div>
+                <div class="result-line" style="font-weight: 600; color: #667eea;">
+                    <span class="result-label">Impôt sur 1 part</span>
+                    <span class="result-value" id="impotUnePart">0 €</span>
+                </div>
+                <div class="result-line" style="font-weight: 600; color: #667eea;">
+                    <span class="result-label">Impôt brut (× <span id="partsMultiplier">2</span> parts)</span>
+                    <span class="result-value" id="impotBrut">0 €</span>
+                </div>
+            </div>
+
+            <div class="result-section" id="pfuSection" style="display: none;">
+                <h3>5️⃣ Flat tax crypto (PFU)</h3>
+                <div class="result-line">
+                    <span class="result-label">PFU 30% sur gains crypto</span>
+                    <span class="result-value" id="pfuAmount">0 €</span>
+                </div>
+            </div>
+
+            <div class="total-result">
+                <h3>💰 Total de l'impôt à payer</h3>
+                <div class="amount" id="totalImpot">0 €</div>
+            </div>
+
+            <div class="synthesis">
+                <p id="synthesisText"></p>
+            </div>
+
+            <div class="bonus-info" id="bonusInfo">
+                <strong>💡 Astuce :</strong> <span id="bonusText"></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Barème IR 2025
+        const bareme = [
+            { max: 11497, taux: 0 },
+            { max: 29315, taux: 0.11 },
+            { max: 83823, taux: 0.30 },
+            { max: 180294, taux: 0.41 },
+            { max: Infinity, taux: 0.45 }
+        ];
+
+        function formatEuro(montant) {
+            return new Intl.NumberFormat('fr-FR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(montant) + ' €';
+        }
+
+        function calculerImpotProgressif(revenuImposable) {
+            let impot = 0;
+            let revenuRestant = revenuImposable;
+            let tranchesPrecedentes = 0;
+            const details = [];
+
+            for (let i = 0; i < bareme.length; i++) {
+                const tranche = bareme[i];
+                const plafondTranche = tranche.max;
+                const montantTranche = Math.min(revenuRestant, plafondTranche - tranchesPrecedentes);
+
+                if (montantTranche > 0) {
+                    const impotTranche = montantTranche * tranche.taux;
+                    impot += impotTranche;
+
+                    details.push({
+                        montant: montantTranche,
+                        taux: tranche.taux,
+                        impot: impotTranche,
+                        de: tranchesPrecedentes,
+                        a: Math.min(plafondTranche, revenuImposable)
+                    });
+
+                    revenuRestant -= montantTranche;
+                    tranchesPrecedentes = plafondTranche;
+
+                    if (revenuRestant <= 0) break;
+                }
+            }
+
+            return { impot, details };
+        }
+
+        function calculerRevenuMaxPourZeroImpot(parts) {
+            // Pour 0€ d'impôt, on ne doit pas dépasser la première tranche
+            // Avec le quotient familial : revenu_total = quotient × parts
+            return bareme[0].max * parts;
+        }
+
+        function calculerImpot() {
+            // Récupération des valeurs
+            const revenuBNC = parseFloat(document.getElementById('revenuBNC').value) || 0;
+            const revenuBIC = parseFloat(document.getElementById('revenuBIC').value) || 0;
+            const revenuFoncier = parseFloat(document.getElementById('revenuFoncier').value) || 0;
+            const gainsCrypto = parseFloat(document.getElementById('gainsCrypto').value) || 0;
+            const parts = parseFloat(document.getElementById('parts').value) || 1;
+            const pfuCrypto = document.getElementById('pfuCrypto').checked;
+
+            // Affichage des revenus bruts
+            document.getElementById('brutBNC').textContent = formatEuro(revenuBNC);
+            document.getElementById('brutBIC').textContent = formatEuro(revenuBIC);
+            document.getElementById('brutFoncier').textContent = formatEuro(revenuFoncier);
+            document.getElementById('brutCrypto').textContent = formatEuro(gainsCrypto);
+
+            // Calcul des abattements
+            const abattementBNC = revenuBNC * 0.34;
+            const abattementBIC = revenuBIC * 0.50;
+            const abattementFoncier = revenuFoncier * 0.30;
+
+            document.getElementById('abattementBNC').textContent = formatEuro(abattementBNC);
+            document.getElementById('abattementBIC').textContent = formatEuro(abattementBIC);
+            document.getElementById('abattementFoncier').textContent = formatEuro(abattementFoncier);
+
+            // Calcul des revenus imposables
+            const imposableBNC = revenuBNC - abattementBNC;
+            const imposableBIC = revenuBIC - abattementBIC;
+            const imposableFoncier = revenuFoncier - abattementFoncier;
+
+            // Si PFU est cochée, les crypto ne sont pas au barème
+            const imposableCrypto = pfuCrypto ? 0 : gainsCrypto;
+
+            document.getElementById('imposableBNC').textContent = formatEuro(imposableBNC);
+            document.getElementById('imposableBIC').textContent = formatEuro(imposableBIC);
+            document.getElementById('imposableFoncier').textContent = formatEuro(imposableFoncier);
+            document.getElementById('imposableCrypto').textContent = formatEuro(imposableCrypto);
+
+            // Total imposable
+            const totalImposable = imposableBNC + imposableBIC + imposableFoncier + imposableCrypto;
+            document.getElementById('totalImposable').textContent = formatEuro(totalImposable);
+
+            // Quotient familial
+            const quotient = totalImposable / parts;
+            document.getElementById('quotient').textContent = formatEuro(quotient);
+
+            // Calcul de l'impôt progressif
+            const { impot: impotUnePart, details } = calculerImpotProgressif(quotient);
+
+            // Affichage des tranches
+            let tranchesHTML = '';
+            details.forEach((detail, index) => {
+                const tauxPourcent = (detail.taux * 100).toFixed(0);
+                tranchesHTML += `
+                    <div class="result-line" style="font-size: 0.9rem; color: #777;">
+                        <span class="result-label">Tranche ${index + 1} : ${formatEuro(detail.montant)} × ${tauxPourcent}%</span>
+                        <span class="result-value">${formatEuro(detail.impot)}</span>
+                    </div>
+                `;
+            });
+            document.getElementById('tranchesDetail').innerHTML = tranchesHTML;
+
+            document.getElementById('impotUnePart').textContent = formatEuro(impotUnePart);
+            document.getElementById('partsMultiplier').textContent = parts;
+
+            // Impôt brut (multiplié par le nombre de parts)
+            const impotBrut = impotUnePart * parts;
+            document.getElementById('impotBrut').textContent = formatEuro(impotBrut);
+
+            // PFU sur crypto
+            let pfuAmount = 0;
+            if (pfuCrypto && gainsCrypto > 0) {
+                pfuAmount = gainsCrypto * 0.30;
+                document.getElementById('pfuSection').style.display = 'block';
+                document.getElementById('pfuAmount').textContent = formatEuro(pfuAmount);
+            } else {
+                document.getElementById('pfuSection').style.display = 'none';
+            }
+
+            // Total final
+            const totalImpot = impotBrut + pfuAmount;
+            document.getElementById('totalImpot').textContent = formatEuro(totalImpot);
+
+            // Synthèse
+            const revenuTotal = revenuBNC + revenuBIC + revenuFoncier + gainsCrypto;
+            const tauxEffectif = revenuTotal > 0 ? (totalImpot / revenuTotal * 100).toFixed(2) : 0;
+
+            let synthesisText = `Avec ${parts} part${parts > 1 ? 's' : ''} fiscale${parts > 1 ? 's' : ''} et un revenu total de ${formatEuro(revenuTotal)}, votre impôt estimé est de ${formatEuro(totalImpot)}`;
+
+            if (pfuCrypto && gainsCrypto > 0) {
+                synthesisText += ` (dont ${formatEuro(pfuAmount)} de flat tax crypto)`;
+            }
+
+            synthesisText += `. Votre taux d'imposition effectif est de ${tauxEffectif}%.`;
+
+            document.getElementById('synthesisText').textContent = synthesisText;
+
+            // Bonus : revenu maximum pour 0€ d'impôt
+            const revenuMaxZeroImpot = calculerRevenuMaxPourZeroImpot(parts);
+            const revenuNetMaxZeroImpot = revenuMaxZeroImpot; // Approximation (avant abattements)
+
+            document.getElementById('bonusText').textContent =
+                `Avec ${parts} part${parts > 1 ? 's' : ''}, vous pouvez avoir jusqu'à environ ${formatEuro(revenuMaxZeroImpot)} de revenu imposable (après abattements) sans payer d'impôt sur le revenu.`;
+
+            // Affichage des résultats
+            document.getElementById('results').classList.add('visible');
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Permettre le calcul avec la touche Entrée
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                calculerImpot();
+            }
+        });
+    </script>
+</body>
+</html>
