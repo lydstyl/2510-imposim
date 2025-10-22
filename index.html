@@ -308,7 +308,7 @@
           <input
             type="number"
             id="parts"
-            value="2.5"
+            value="2.75"
             min="1"
             max="10"
             step="0.5"
@@ -316,7 +316,7 @@
         </div>
 
         <div class="checkbox-group">
-          <input type="checkbox" id="pfuCrypto" checked />
+          <input type="checkbox" id="pfuCrypto" />
           <label for="pfuCrypto"
             >Appliquer la flat tax (PFU ou Prélèvement Forfaitaire Unique 30%)
             sur les gains crypto</label
@@ -346,6 +346,10 @@
           <div class="result-line">
             <span class="result-label">Plus-values crypto</span>
             <span class="result-value" id="brutCrypto">0 €</span>
+          </div>
+          <div class="result-line" style="font-weight: 600; color: #667eea">
+            <span class="result-label">Total revenus bruts</span>
+            <span class="result-value" id="totalBrut">0 €</span>
           </div>
         </div>
 
@@ -390,7 +394,37 @@
         </div>
 
         <div class="result-section">
-          <h3>4️⃣ Application du barème progressif</h3>
+          <h3>4️⃣ Cotisations et prélèvements sociaux</h3>
+          <div class="result-line">
+            <span class="result-label">Cotisations sociales BNC (22%)</span>
+            <span class="result-value" id="cotisationsBNC">0 €</span>
+          </div>
+          <div class="result-line">
+            <span class="result-label">Prélèvements sociaux BIC (17,2%)</span>
+            <span class="result-value" id="prelevementsBIC">0 €</span>
+          </div>
+          <div class="result-line">
+            <span class="result-label"
+              >Prélèvements sociaux Foncier (17,2%)</span
+            >
+            <span class="result-value" id="prelevementsFoncier">0 €</span>
+          </div>
+          <div class="result-line" id="prelevementsCryptoLine">
+            <span class="result-label"
+              >Prélèvements sociaux Crypto (17,2%)</span
+            >
+            <span class="result-value" id="prelevementsCrypto">0 €</span>
+          </div>
+          <div class="result-line" style="font-weight: 600; color: #667eea">
+            <span class="result-label"
+              >Total cotisations et prélèvements sociaux</span
+            >
+            <span class="result-value" id="totalCotisations">0 €</span>
+          </div>
+        </div>
+
+        <div class="result-section">
+          <h3>5️⃣ Application du barème progressif</h3>
           <div class="result-line">
             <span class="result-label">Quotient familial (revenu / parts)</span>
             <span class="result-value" id="quotient">0 €</span>
@@ -409,7 +443,7 @@
         </div>
 
         <div class="result-section" id="pfuSection" style="display: none">
-          <h3>5️⃣ Flat tax crypto (PFU)</h3>
+          <h3>6️⃣ Flat tax crypto (PFU)</h3>
           <div class="result-line">
             <span class="result-label">Montant brut crypto</span>
             <span class="result-value" id="pfuMontantBrut">0 €</span>
@@ -427,12 +461,13 @@
             <span class="result-value" id="pfuAmount">0 €</span>
           </div>
           <div class="bonus-info" style="margin-top: 15px">
-            <strong>ℹ️ Régime appliqué :</strong> PFU (Prélèvement Forfaitaire Unique) = 12,8% IR + 17,2% prélèvements sociaux → total 30%
+            <strong>ℹ️ Régime appliqué :</strong> PFU (Prélèvement Forfaitaire
+            Unique) = 12,8% IR + 17,2% prélèvements sociaux → total 30%
           </div>
         </div>
 
         <div class="result-section" id="baremeSection" style="display: none">
-          <h3>5️⃣ Prélèvements sociaux sur crypto</h3>
+          <h3>6️⃣ Prélèvements sociaux sur crypto</h3>
           <div class="result-line">
             <span class="result-label">Montant brut crypto</span>
             <span class="result-value" id="baremeMontantBrut">0 €</span>
@@ -442,13 +477,18 @@
             <span class="result-value" id="baremePS">0 €</span>
           </div>
           <div class="bonus-info" style="margin-top: 15px">
-            <strong>ℹ️ Régime appliqué :</strong> Les gains crypto sont imposés au barème progressif (déjà inclus au point 4️⃣) + 17,2% de prélèvements sociaux sur la plus-value
+            <strong>ℹ️ Régime appliqué :</strong> Les gains crypto sont imposés
+            au barème progressif (déjà inclus au point 4️⃣) + 17,2% de
+            prélèvements sociaux sur la plus-value
           </div>
         </div>
 
         <div class="total-result">
           <h3>💰 Total de l'impôt à payer</h3>
           <div class="amount" id="totalImpot">0 €</div>
+          <div style="font-size: 1.2rem; margin-top: 10px; opacity: 0.95" id="pourcentageBrut">
+            0% des revenus bruts
+          </div>
         </div>
 
         <div class="synthesis">
@@ -536,12 +576,16 @@
         const pfuCrypto = document.getElementById('pfuCrypto').checked
 
         // Affichage des revenus bruts
+        const totalBrut = revenuBNC + revenuBIC + revenuFoncier + gainsCrypto
+
         document.getElementById('brutBNC').textContent = formatEuro(revenuBNC)
         document.getElementById('brutBIC').textContent = formatEuro(revenuBIC)
         document.getElementById('brutFoncier').textContent =
           formatEuro(revenuFoncier)
         document.getElementById('brutCrypto').textContent =
           formatEuro(gainsCrypto)
+        document.getElementById('totalBrut').textContent =
+          formatEuro(totalBrut)
 
         // Calcul des abattements
         const abattementBNC = revenuBNC * 0.34
@@ -577,6 +621,40 @@
           imposableBNC + imposableBIC + imposableFoncier + imposableCrypto
         document.getElementById('totalImposable').textContent =
           formatEuro(totalImposable)
+
+        // Calcul des cotisations et prélèvements sociaux
+        const cotisationsBNC = imposableBNC * 0.22
+        const prelevementsBIC = imposableBIC * 0.172
+        const prelevementsFoncier = imposableFoncier * 0.172
+
+        // Pour crypto : si PFU, les prélèvements sociaux sont inclus dans le PFU
+        // Si barème, on les calcule ici
+        let prelevementsCrypto = 0
+        if (!pfuCrypto && gainsCrypto > 0) {
+          prelevementsCrypto = gainsCrypto * 0.172
+          document.getElementById('prelevementsCryptoLine').style.display =
+            'flex'
+        } else {
+          document.getElementById('prelevementsCryptoLine').style.display =
+            'none'
+        }
+
+        const totalCotisations =
+          cotisationsBNC +
+          prelevementsBIC +
+          prelevementsFoncier +
+          prelevementsCrypto
+
+        document.getElementById('cotisationsBNC').textContent =
+          formatEuro(cotisationsBNC)
+        document.getElementById('prelevementsBIC').textContent =
+          formatEuro(prelevementsBIC)
+        document.getElementById('prelevementsFoncier').textContent =
+          formatEuro(prelevementsFoncier)
+        document.getElementById('prelevementsCrypto').textContent =
+          formatEuro(prelevementsCrypto)
+        document.getElementById('totalCotisations').textContent =
+          formatEuro(totalCotisations)
 
         // Quotient familial
         const quotient = totalImposable / parts
@@ -623,10 +701,12 @@
             const pfuPS = gainsCrypto * 0.172
             const pfuTotal = pfuIR + pfuPS
 
-            document.getElementById('pfuMontantBrut').textContent = formatEuro(gainsCrypto)
+            document.getElementById('pfuMontantBrut').textContent =
+              formatEuro(gainsCrypto)
             document.getElementById('pfuIR').textContent = formatEuro(pfuIR)
             document.getElementById('pfuPS').textContent = formatEuro(pfuPS)
-            document.getElementById('pfuAmount').textContent = formatEuro(pfuTotal)
+            document.getElementById('pfuAmount').textContent =
+              formatEuro(pfuTotal)
 
             document.getElementById('pfuSection').style.display = 'block'
             document.getElementById('baremeSection').style.display = 'none'
@@ -634,31 +714,35 @@
             impotCrypto = pfuTotal
           } else {
             // Mode barème : crypto inclus dans le revenu imposable
-            // L'impôt sur le revenu est déjà calculé dans le barème progressif (point 4)
-            // On ajoute seulement les prélèvements sociaux de 17,2%
+            // L'impôt sur le revenu est déjà calculé dans le barème progressif (point 5)
+            // Les prélèvements sociaux sont déjà calculés dans la section 4 (cotisations et prélèvements sociaux)
 
-            // Prélèvements sociaux : toujours 17,2% du montant brut
-            const psCrypto = gainsCrypto * 0.172
-
-            document.getElementById('baremeMontantBrut').textContent = formatEuro(gainsCrypto)
-            document.getElementById('baremePS').textContent = formatEuro(psCrypto)
+            document.getElementById('baremeMontantBrut').textContent =
+              formatEuro(gainsCrypto)
+            document.getElementById('baremePS').textContent =
+              formatEuro(prelevementsCrypto)
 
             document.getElementById('pfuSection').style.display = 'none'
             document.getElementById('baremeSection').style.display = 'block'
 
-            // L'impôt crypto = seulement les prélèvements sociaux
-            // (l'IR est déjà dans impotBrut car crypto est dans totalImposable)
-            impotCrypto = psCrypto
+            // L'impôt crypto = 0 car tout est déjà compté ailleurs
+            // (l'IR est déjà dans impotBrut, les PS sont dans totalCotisations)
+            impotCrypto = 0
           }
         } else {
           document.getElementById('pfuSection').style.display = 'none'
           document.getElementById('baremeSection').style.display = 'none'
         }
 
-        // Total final
-        const totalImpot = impotBrut + impotCrypto
+        // Total final : impôt sur le revenu + cotisations/prélèvements sociaux + impôt crypto (PFU si applicable)
+        const totalImpot = impotBrut + totalCotisations + impotCrypto
         document.getElementById('totalImpot').textContent =
           formatEuro(totalImpot)
+
+        // Pourcentage par rapport aux revenus bruts
+        const pourcentageBrut = totalBrut > 0 ? ((totalImpot / totalBrut) * 100).toFixed(2) : 0
+        document.getElementById('pourcentageBrut').textContent =
+          `${pourcentageBrut}% des revenus bruts`
 
         // Synthèse
         const revenuTotal = revenuBNC + revenuBIC + revenuFoncier + gainsCrypto
@@ -669,17 +753,19 @@
           parts > 1 ? 's' : ''
         } et un revenu total de ${formatEuro(
           revenuTotal
-        )}, votre impôt estimé est de ${formatEuro(totalImpot)}`
+        )}, le montant total à payer est de ${formatEuro(
+          totalImpot
+        )} (incluant ${formatEuro(
+          impotBrut
+        )} d'impôt sur le revenu et ${formatEuro(
+          totalCotisations
+        )} de cotisations/prélèvements sociaux`
 
-        if (gainsCrypto > 0) {
-          if (pfuCrypto) {
-            synthesisText += ` (dont ${formatEuro(impotCrypto)} d'impôt crypto au PFU : 12,8% IR + 17,2% prélèvements sociaux = 30%)`
-          } else {
-            synthesisText += ` (dont ${formatEuro(impotCrypto)} d'impôt crypto au barème IR + 17,2% de prélèvements sociaux)`
-          }
+        if (gainsCrypto > 0 && pfuCrypto) {
+          synthesisText += `, plus ${formatEuro(impotCrypto)} de PFU crypto`
         }
 
-        synthesisText += `. Votre taux d'imposition effectif est de ${tauxEffectif}%.`
+        synthesisText += `). Votre taux global effectif est de ${tauxEffectif}%.`
 
         document.getElementById('synthesisText').textContent = synthesisText
 
