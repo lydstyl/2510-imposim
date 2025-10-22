@@ -396,7 +396,9 @@
         <div class="result-section">
           <h3>4️⃣ Cotisations et prélèvements sociaux</h3>
           <div class="result-line">
-            <span class="result-label">Cotisations sociales BNC (22%)</span>
+            <span class="result-label">Cotisations sociales BNC (22%)
+              <span class="info-badge" style="background: #e8f5e9; color: #2e7d32;">Déjà payé à l'URSSAF</span>
+            </span>
             <span class="result-value" id="cotisationsBNC">0 €</span>
           </div>
           <div class="result-line">
@@ -483,9 +485,23 @@
           </div>
         </div>
 
+        <div class="total-result" style="background: linear-gradient(135deg, #43a047 0%, #2e7d32 100%);">
+          <h3>💳 Impôt sur le revenu à payer</h3>
+          <div style="font-size: 1.8rem; font-weight: 700; margin-bottom: 5px;" id="totalImpotRevenu">0 €</div>
+          <div style="font-size: 1rem; opacity: 0.9;">
+            (IR + prélèvements sociaux BIC/Foncier/Crypto + PFU crypto si applicable)
+          </div>
+          <div style="font-size: 1.2rem; margin-top: 10px; opacity: 0.95" id="pourcentageBrutIR">
+            0% des revenus bruts
+          </div>
+        </div>
+
         <div class="total-result">
-          <h3>💰 Total de l'impôt à payer</h3>
+          <h3>💰 Total des charges fiscales et sociales</h3>
           <div class="amount" id="totalImpot">0 €</div>
+          <div style="font-size: 1rem; opacity: 0.9; margin-top: 5px;">
+            (Incluant les cotisations URSSAF déjà payées)
+          </div>
           <div style="font-size: 1.2rem; margin-top: 10px; opacity: 0.95" id="pourcentageBrut">
             0% des revenus bruts
           </div>
@@ -734,7 +750,18 @@
           document.getElementById('baremeSection').style.display = 'none'
         }
 
-        // Total final : impôt sur le revenu + cotisations/prélèvements sociaux + impôt crypto (PFU si applicable)
+        // Total impôt sur le revenu à payer (sans les cotisations BNC déjà payées à l'URSSAF)
+        const prelevementsSociauxSansURSSAF = prelevementsBIC + prelevementsFoncier + prelevementsCrypto
+        const totalImpotRevenu = impotBrut + prelevementsSociauxSansURSSAF + impotCrypto
+
+        document.getElementById('totalImpotRevenu').textContent =
+          formatEuro(totalImpotRevenu)
+
+        const pourcentageBrutIR = totalBrut > 0 ? ((totalImpotRevenu / totalBrut) * 100).toFixed(2) : 0
+        document.getElementById('pourcentageBrutIR').textContent =
+          `${pourcentageBrutIR}% des revenus bruts`
+
+        // Total final : tout inclus (pour information, incluant cotisations URSSAF)
         const totalImpot = impotBrut + totalCotisations + impotCrypto
         document.getElementById('totalImpot').textContent =
           formatEuro(totalImpot)
